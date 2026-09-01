@@ -6,7 +6,7 @@
   --acid: #dfff49;
   --coral: #ff7657;
   --cyan: #5ee7dd;
-  --muted: #6c7180;
+  --muted: #626775;
   --correct: #18794e;
   --wrong: #c43b31;
   --shadow: 8px 8px 0 #0b1020;
@@ -34,8 +34,9 @@ body {
 button, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible + .option-content {
-  outline: 3px solid var(--cyan);
-  outline-offset: 3px;
+  outline: 3px solid var(--paper-bright);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 7px var(--ink);
 }
 
 .shell {
@@ -56,7 +57,7 @@ button:focus-visible, input:focus-visible + .option-content {
 }
 
 .masthead::after {
-  content: "20";
+  content: "100";
   position: absolute;
   right: clamp(-16px, 2vw, 30px);
   bottom: -64px;
@@ -187,7 +188,7 @@ h1 {
   transition: width 360ms ease;
 }
 
-.question-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.question-map { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
 .map-button {
   aspect-ratio: 1;
   border: 1.5px solid var(--ink);
@@ -204,7 +205,7 @@ h1 {
   transform: translate(-2px, -2px);
 }
 .map-button.correct { background: var(--cyan); }
-.map-button.wrong { color: white; background: var(--coral); }
+.map-button.wrong { color: var(--ink); background: var(--coral); }
 
 .legend {
   display: grid;
@@ -232,7 +233,29 @@ h1 {
   transition: background 120ms ease, transform 120ms ease;
 }
 .control-button:hover { background: var(--acid); transform: translateX(3px); }
-.control-button.danger:hover { color: white; background: var(--coral); }
+.control-button.danger:hover { color: var(--ink); background: var(--coral); }
+
+.blueprint-panel p {
+  margin: 0;
+  font-size: .79rem;
+  font-weight: 800;
+  line-height: 1.7;
+}
+.blueprint-panel a {
+  display: inline-block;
+  margin-top: 11px;
+  color: var(--ink);
+  font-size: .77rem;
+  font-weight: 900;
+  text-underline-offset: 3px;
+}
+.blueprint-panel small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: .69rem;
+  line-height: 1.55;
+}
 
 .content {
   min-width: 0;
@@ -247,13 +270,22 @@ h1 {
 }
 .category-button {
   flex: 0 0 auto;
+  display: grid;
+  gap: 2px;
   border: 1.5px solid var(--ink);
   background: var(--paper);
   color: var(--ink);
   padding: 9px 13px;
   font-size: .79rem;
   font-weight: 900;
+  text-align: left;
   box-shadow: 3px 3px 0 var(--ink);
+}
+.category-weight {
+  font-size: .63rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  opacity: .68;
 }
 .category-button.active, .category-button:hover {
   background: var(--category-color, var(--acid));
@@ -304,6 +336,10 @@ h1 {
   font-family: var(--display);
   font-size: clamp(1.45rem, 3vw, 2.2rem);
   line-height: 1.18;
+}
+.question-title:focus {
+  outline: 3px solid var(--ink);
+  outline-offset: 5px;
 }
 .type-badge {
   border: 1.5px solid var(--ink);
@@ -388,8 +424,8 @@ h1 {
   font-weight: 900;
   background: var(--paper);
 }
-.option-en { font-family: var(--display); font-weight: 700; line-height: 1.55; }
-.option-zh { margin-top: 5px; color: #454b5b; font-size: .91rem; line-height: 1.65; }
+.option-en { display: block; font-family: var(--display); font-weight: 700; line-height: 1.55; }
+.option-zh { display: block; margin-top: 5px; color: #454b5b; font-size: .91rem; line-height: 1.65; }
 
 .action-row {
   display: flex;
@@ -419,6 +455,10 @@ h1 {
   padding: clamp(22px, 4vw, 34px);
   overflow: hidden;
   animation: reveal 300ms ease both;
+}
+.answer-panel:focus {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
 }
 .answer-panel::after {
   content: "ANSWER";
@@ -454,6 +494,17 @@ h1 {
 .result-stamp.correct { color: var(--cyan); }
 .result-stamp.wrong { color: #ff9f89; }
 .correct-answer-text { font-weight: 850; }
+.answer-section-title {
+  position: relative;
+  z-index: 1;
+  margin: 24px 0 8px;
+  color: var(--acid);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.answer-result + .answer-section-title { margin-top: 0; }
 .explanation {
   position: relative;
   z-index: 1;
@@ -467,7 +518,7 @@ h1 {
   z-index: 1;
   display: grid;
   gap: 8px;
-  margin-top: 20px;
+  margin-top: 8px;
 }
 .why-item {
   display: grid;
@@ -486,7 +537,7 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  margin-top: 20px;
+  margin-top: 8px;
 }
 .term {
   border: 1px solid rgba(255, 255, 255, .32);
@@ -549,7 +600,6 @@ h1 {
 @media (max-width: 900px) {
   .dashboard { grid-template-columns: 1fr; }
   .sidebar { position: static; grid-template-columns: 1fr 1fr; }
-  .sidebar .panel:last-child { grid-column: 1 / -1; }
 }
 
 @media (max-width: 620px) {

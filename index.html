@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Claude Certified Architect Foundations 中英對照互動練習題">
-  <title>Claude Architect｜20 題互動練習</title>
+  <meta name="description" content="Claude Certified Architect Foundations 100 題中英對照互動練習">
+  <title>Claude Architect｜100 題互動練習</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23dfff49'/%3E%3Cpath d='M18 46V18h11c12 0 18 5 18 14s-6 14-18 14H18zm8-7h4c7 0 10-2 10-7s-3-7-10-7h-4v14z' fill='%230b1020'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,13 +14,15 @@
       <p class="eyebrow">Claude Certified Architect · Foundations</p>
       <h1>架構師<br>考前演練</h1>
       <p class="masthead-copy">
-        20 題原創情境題，將英文考題拆成中文能理解的系統設計判斷。
-        先作答，再看逐項解析；進度會自動保存在這台電腦的瀏覽器。
+        100 題原創情境題，依官方五大考試領域比重編排，將英文考題拆成中文能理解的系統設計判斷。
+        先作答，再看核心原理與四個選項的逐項解析；進度會自動保存在這台電腦的瀏覽器。
       </p>
       <div class="masthead-tags" aria-label="練習特色">
+        <span>100 題原創模擬</span>
         <span>中英對照</span>
         <span>單選＋複選</span>
-        <span>逐項答案解析</span>
+        <span>逐項深入解析</span>
+        <span>依官方考綱比例</span>
         <span>完全離線</span>
       </div>
     </header>
@@ -40,7 +42,7 @@
         </section>
 
         <section class="panel">
-          <h2 class="panel-title"><span>題目地圖</span><span>01—20</span></h2>
+          <h2 class="panel-title"><span>題目地圖</span><span id="mapScopeLabel">目前領域</span></h2>
           <div class="question-map" id="questionMap"></div>
           <div class="legend">
             <div class="legend-row"><span class="legend-dot"></span>尚未作答</div>
@@ -56,6 +58,13 @@
             <button class="control-button" id="jumpUnanswered" type="button">跳到下一題未作答</button>
             <button class="control-button danger" id="resetButton" type="button">清除全部作答紀錄</button>
           </div>
+        </section>
+
+        <section class="panel blueprint-panel">
+          <h2 class="panel-title"><span>考綱配置</span><span>100 題</span></h2>
+          <p>Agent 27% · MCP 18% · Claude Code 20% · Prompt 20% · Context 15%</p>
+          <a href="https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification" target="_blank" rel="noopener noreferrer">查看 Anthropic 官方考試頁面 ↗</a>
+          <small>本站為自製練習題庫，並非 Anthropic 官方題庫或真實考題。</small>
         </section>
       </aside>
 
@@ -73,6 +82,10 @@
   </main>
 
   <script src="questions.js"></script>
+  <script src="questions-agent.js"></script>
+  <script src="questions-mcp-context.js"></script>
+  <script src="questions-code-prompt.js"></script>
+  <script src="question-bank.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,12 +1,12 @@
 const categories = {
-  agent: { name: "Agent 架構與流程", short: "Agent 架構", color: "#dfff49" },
-  mcp: { name: "Tool 與 MCP", short: "Tool／MCP", color: "#5ee7dd" },
-  code: { name: "Claude Code 工作流程", short: "Claude Code", color: "#ff9f7f" },
-  prompt: { name: "Prompt 與結構化輸出", short: "Prompt／JSON", color: "#b9a6ff" },
-  context: { name: "Context 與可靠性", short: "Context／評估", color: "#ffda68" }
+  agent: { name: "Agent 架構與流程", short: "Agent 架構", color: "#dfff49", weight: "27%" },
+  mcp: { name: "Tool 與 MCP", short: "Tool／MCP", color: "#5ee7dd", weight: "18%" },
+  code: { name: "Claude Code 工作流程", short: "Claude Code", color: "#ff9f7f", weight: "20%" },
+  prompt: { name: "Prompt 與結構化輸出", short: "Prompt／JSON", color: "#b9a6ff", weight: "20%" },
+  context: { name: "Context 與可靠性", short: "Context／評估", color: "#ffda68", weight: "15%" }
 };
 
-const questions = [
+const originalQuestions = [
   {
     id: 1,
     category: "agent",

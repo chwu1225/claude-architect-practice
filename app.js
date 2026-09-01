@@ -7,7 +7,11 @@ const defaultState = {
 };
 
 let state = loadState();
-let showSelectionWarning = false;
+let selectionWarning = "";
+
+if (!Number.isInteger(state.currentIndex) || state.currentIndex < 0 || state.currentIndex >= questions.length) {
+  state.currentIndex = 0;
+}
 
 const questionCard = document.getElementById("questionCard");
 const questionMap = document.getElementById("questionMap");
@@ -19,13 +23,54 @@ const jumpUnanswered = document.getElementById("jumpUnanswered");
 const resetButton = document.getElementById("resetButton");
 const completionPanel = document.getElementById("completionPanel");
 const liveRegion = document.getElementById("liveRegion");
+const mapScopeLabel = document.getElementById("mapScopeLabel");
 
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    return Object.assign({}, defaultState, saved || {});
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+      return Object.assign({}, defaultState, { responses: {}, submitted: {} });
+    }
+
+    const responses = {};
+    const savedResponses = saved.responses && typeof saved.responses === "object" && !Array.isArray(saved.responses)
+      ? saved.responses
+      : {};
+
+    questions.forEach(function (question) {
+      const savedResponse = savedResponses[question.id];
+      if (!Array.isArray(savedResponse)) {
+        return;
+      }
+      const optionKeys = question.options.map(function (option) {
+        return option.key;
+      });
+      const validResponse = Array.from(new Set(savedResponse.filter(function (value) {
+        return typeof value === "string" && optionKeys.includes(value);
+      })));
+      if (validResponse.length > 0) {
+        responses[question.id] = validResponse;
+      }
+    });
+
+    const submitted = {};
+    const savedSubmitted = saved.submitted && typeof saved.submitted === "object" && !Array.isArray(saved.submitted)
+      ? saved.submitted
+      : {};
+    questions.forEach(function (question) {
+      if (savedSubmitted[question.id] === true && responses[question.id]) {
+        submitted[question.id] = true;
+      }
+    });
+
+    return {
+      currentIndex: Number.isInteger(saved.currentIndex) ? saved.currentIndex : defaultState.currentIndex,
+      language: saved.language === "english" ? "english" : defaultState.language,
+      responses: responses,
+      submitted: submitted
+    };
   } catch (error) {
-    return Object.assign({}, defaultState);
+    return Object.assign({}, defaultState, { responses: {}, submitted: {} });
   }
 }
 
@@ -71,9 +116,16 @@ function escapeHtml(value) {
 function renderCategories() {
   categoryStrip.innerHTML = Object.keys(categories).map(function (key) {
     const category = categories[key];
-    const active = questions[state.currentIndex].category === key ? " active" : "";
+    const count = questions.filter(function (question) {
+      return question.category === key;
+    }).length;
+    const isActive = questions[state.currentIndex].category === key;
+    const active = isActive ? " active" : "";
+    const ariaCurrent = isActive ? ' aria-current="true"' : "";
     return '<button class="category-button' + active + '" type="button" data-category="' + key +
-      '" style="--category-color:' + category.color + '">' + category.short + "</button>";
+      '" style="--category-color:' + category.color + '"' + ariaCurrent + ">" +
+      '<span>' + category.short + '</span><span class="category-weight">' + category.weight + ' · ' + count + ' 題</span>' +
+      "</button>";
   }).join("");
 
   categoryStrip.querySelectorAll("[data-category]").forEach(function (button) {
@@ -88,16 +140,34 @@ function renderCategories() {
 }
 
 function renderMap() {
-  questionMap.innerHTML = questions.map(function (question, index) {
+  const currentCategory = questions[state.currentIndex].category;
+  const category = categories[currentCategory];
+  const scopedQuestions = questions.map(function (question, index) {
+    return { question: question, index: index };
+  }).filter(function (entry) {
+    return entry.question.category === currentCategory;
+  });
+
+  mapScopeLabel.textContent = category.short + " · " + scopedQuestions.length + " 題";
+  questionMap.innerHTML = scopedQuestions.map(function (entry) {
+    const question = entry.question;
+    const index = entry.index;
     let status = "";
+    let statusLabel = "尚未作答";
     if (state.submitted[question.id]) {
-      status = isCorrect(question) ? " correct" : " wrong";
+      const correct = isCorrect(question);
+      status = correct ? " correct" : " wrong";
+      statusLabel = correct ? "答對" : "待複習";
     }
-    if (index === state.currentIndex) {
+    const isCurrent = index === state.currentIndex;
+    if (isCurrent) {
       status += " current";
     }
+    const currentLabel = isCurrent ? "，目前題目" : "";
+    const ariaCurrent = isCurrent ? ' aria-current="step"' : "";
     return '<button class="map-button' + status + '" type="button" data-index="' + index +
-      '" aria-label="前往第 ' + question.id + ' 題">' + String(question.id).padStart(2, "0") + "</button>";
+      '" aria-label="前往第 ' + question.id + " 題，" + statusLabel + currentLabel + '"' + ariaCurrent + ">" +
+      String(question.id).padStart(2, "0") + "</button>";
   }).join("");
 
   questionMap.querySelectorAll("[data-index]").forEach(function (button) {
@@ -117,14 +187,15 @@ function renderStats() {
   document.getElementById("progressFill").style.width = stats.progress + "%";
 
   if (stats.answered === questions.length) {
+    const finalScore = Math.round((stats.correct / questions.length) * 100);
     let message = "先不用急著報考，從錯題解析與關鍵單字開始補強。";
-    if (stats.correct >= 17) {
+    if (finalScore >= 85) {
       message = "觀念掌握得很穩，可以進入英文限時模擬。";
-    } else if (stats.correct >= 13) {
+    } else if (finalScore >= 70) {
       message = "基礎已建立，建議針對橘色題目再複習一次。";
     }
     completionPanel.className = "completion visible";
-    completionPanel.innerHTML = "<h2>完成一輪：答對 " + stats.correct + "／20</h2><p>" + message + "</p>";
+    completionPanel.innerHTML = "<h2>完成一輪：答對 " + stats.correct + "／" + questions.length + "</h2><p>" + message + "</p>";
   } else {
     completionPanel.className = "completion";
     completionPanel.innerHTML = "";
@@ -164,7 +235,7 @@ function renderQuestion() {
       '<span class="option-content">' +
       '<span class="option-key">' + option.key + "</span>" +
       "<span>" +
-      '<span class="option-en">' + escapeHtml(option.en) + "</span>" +
+      '<span class="option-en" lang="en">' + escapeHtml(option.en) + "</span>" +
       '<span class="option-zh">' + escapeHtml(option.zh) + "</span>" +
       "</span>" +
       "</span>" +
@@ -179,25 +250,29 @@ function renderQuestion() {
         '</span><span>' + escapeHtml(question.why[option.key]) + "</span></div>";
     }).join("");
     const termsHtml = question.terms.map(function (term) {
-      return '<span class="term"><strong>' + escapeHtml(term[0]) + "</strong> · " +
+      return '<span class="term"><strong lang="en">' + escapeHtml(term[0]) + "</strong> · " +
         escapeHtml(term[1]) + "</span>";
     }).join("");
-    answerHtml = '<section class="answer-panel" aria-label="答案解析">' +
+    answerHtml = '<section class="answer-panel" aria-label="答案解析" tabindex="-1">' +
       '<div class="answer-result">' +
       '<span class="result-stamp ' + (correct ? "correct" : "wrong") + '">' +
       (correct ? "答對了" : "需要複習") + "</span>" +
       '<span class="correct-answer-text">正確答案：' + question.answers.join("、") + "</span>" +
       "</div>" +
+      '<h3 class="answer-section-title">核心解析</h3>' +
       '<p class="explanation">' + escapeHtml(question.explanation) + "</p>" +
+      '<h3 class="answer-section-title">逐項判讀</h3>' +
       '<div class="why-grid">' + whyHtml + "</div>" +
+      '<h3 class="answer-section-title">關鍵字</h3>' +
       '<div class="terms">' + termsHtml + "</div>" +
       "</section>";
   }
 
   const actionHtml = submitted
     ? '<button class="secondary-button" id="retryButton" type="button">重新作答這一題</button>'
-    : '<button class="primary-button" id="submitButton" type="button">確認答案，查看解析</button>' +
-      (showSelectionWarning ? '<span class="selection-warning">請先選擇答案。</span>' : "");
+    : '<button class="primary-button" id="submitButton" type="button" aria-describedby="selectionWarning">確認答案，查看解析</button>' +
+      '<span class="selection-warning" id="selectionWarning" role="alert" aria-live="assertive" aria-atomic="true">' +
+      escapeHtml(selectionWarning) + "</span>";
 
   questionCard.style.setProperty("--category-color", category.color);
   questionCard.className = "question-card" + (state.language === "english" ? " english-only" : "");
@@ -206,7 +281,7 @@ function renderQuestion() {
     '<div class="question-number">' + String(question.id).padStart(2, "0") + "</div>" +
     "<div>" +
     '<p class="question-category">' + category.name + "</p>" +
-    '<h2 class="question-title">' + escapeHtml(question.title) + "</h2>" +
+    '<h2 class="question-title" tabindex="-1">' + escapeHtml(question.title) + "</h2>" +
     "</div>" +
     '<span class="type-badge">' + typeLabel + "</span>" +
     "</header>" +
@@ -238,8 +313,31 @@ function renderQuestion() {
     state.language === "english" ? "顯示中英對照" : "只看英文題目";
 }
 
+function focusWithoutScroll(element) {
+  if (!element) {
+    return;
+  }
+  try {
+    element.focus({ preventScroll: true });
+  } catch (error) {
+    element.focus();
+  }
+}
+
+function setSelectionWarning(message) {
+  selectionWarning = message;
+  const warning = document.getElementById("selectionWarning");
+  if (warning) {
+    warning.textContent = message;
+  }
+}
+
+function getScrollBehavior() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+}
+
 function updateSelection(question, input) {
-  showSelectionWarning = false;
+  setSelectionWarning("");
   if (question.type === "single") {
     state.responses[question.id] = [input.value];
   } else {
@@ -252,29 +350,34 @@ function updateSelection(question, input) {
     state.responses[question.id] = Array.from(current);
   }
   saveState();
-  renderQuestion();
 }
 
 function submitAnswer() {
   const question = questions[state.currentIndex];
   const selected = state.responses[question.id] || [];
   if (selected.length === 0) {
-    showSelectionWarning = true;
-    renderQuestion();
+    setSelectionWarning("請先選擇答案。");
+    focusWithoutScroll(document.getElementById("submitButton"));
+    return;
+  }
+  if (question.type === "multiple" && selected.length !== question.answers.length) {
+    setSelectionWarning("本題需選擇 " + question.answers.length + " 項答案。");
+    focusWithoutScroll(document.getElementById("submitButton"));
     return;
   }
   state.submitted[question.id] = true;
-  showSelectionWarning = false;
+  setSelectionWarning("");
   saveState();
   renderAll();
   const correct = isCorrect(question);
   liveRegion.textContent = correct
     ? "第 " + question.id + " 題答對。"
     : "第 " + question.id + " 題需要複習，已顯示詳細解析。";
+  const answerPanel = questionCard.querySelector(".answer-panel");
+  focusWithoutScroll(answerPanel);
   setTimeout(function () {
-    const answerPanel = questionCard.querySelector(".answer-panel");
     if (answerPanel) {
-      answerPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      answerPanel.scrollIntoView({ behavior: getScrollBehavior(), block: "nearest" });
     }
   }, 80);
 }
@@ -283,8 +386,10 @@ function retryQuestion() {
   const question = questions[state.currentIndex];
   delete state.responses[question.id];
   delete state.submitted[question.id];
+  selectionWarning = "";
   saveState();
   renderAll();
+  focusWithoutScroll(questionCard.querySelector("input"));
 }
 
 function goToQuestion(index) {
@@ -292,10 +397,14 @@ function goToQuestion(index) {
     return;
   }
   state.currentIndex = index;
-  showSelectionWarning = false;
+  selectionWarning = "";
   saveState();
   renderAll();
-  window.scrollTo({ top: document.getElementById("quizContent").offsetTop - 14, behavior: "smooth" });
+  focusWithoutScroll(questionCard.querySelector(".question-title"));
+  window.scrollTo({
+    top: document.getElementById("quizContent").offsetTop - 14,
+    behavior: getScrollBehavior()
+  });
 }
 
 function renderAll() {
@@ -333,13 +442,13 @@ jumpUnanswered.addEventListener("click", function () {
   if (first >= 0) {
     goToQuestion(first);
   } else {
-    liveRegion.textContent = "20 題都已作答完成。";
+    liveRegion.textContent = questions.length + " 題都已作答完成。";
     completionPanel.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 });
 
 resetButton.addEventListener("click", function () {
-  const confirmed = window.confirm("確定要清除 20 題的全部作答與分數嗎？");
+  const confirmed = window.confirm("確定要清除 " + questions.length + " 題的全部作答與分數嗎？");
   if (!confirmed) {
     return;
   }
