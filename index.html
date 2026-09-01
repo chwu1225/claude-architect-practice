@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Claude Certified Architect Foundations 中英對照互動練習題">
+  <title>Claude Architect｜20 題互動練習</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23dfff49'/%3E%3Cpath d='M18 46V18h11c12 0 18 5 18 14s-6 14-18 14H18zm8-7h4c7 0 10-2 10-7s-3-7-10-7h-4v14z' fill='%230b1020'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <p class="eyebrow">Claude Certified Architect · Foundations</p>
+      <h1>架構師<br>考前演練</h1>
+      <p class="masthead-copy">
+        20 題原創情境題，將英文考題拆成中文能理解的系統設計判斷。
+        先作答，再看逐項解析；進度會自動保存在這台電腦的瀏覽器。
+      </p>
+      <div class="masthead-tags" aria-label="練習特色">
+        <span>中英對照</span>
+        <span>單選＋複選</span>
+        <span>逐項答案解析</span>
+        <span>完全離線</span>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <aside class="sidebar" aria-label="測驗控制台">
+        <section class="panel">
+          <h2 class="panel-title"><span>作答儀表</span><span id="progressLabel">0%</span></h2>
+          <div class="score-grid">
+            <div class="metric"><strong id="answeredMetric">0</strong><span>已作答</span></div>
+            <div class="metric"><strong id="correctMetric">0</strong><span>答對</span></div>
+            <div class="metric"><strong id="accuracyMetric">—</strong><span>正確率</span></div>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title"><span>題目地圖</span><span>01—20</span></h2>
+          <div class="question-map" id="questionMap"></div>
+          <div class="legend">
+            <div class="legend-row"><span class="legend-dot"></span>尚未作答</div>
+            <div class="legend-row"><span class="legend-dot correct"></span>答對</div>
+            <div class="legend-row"><span class="legend-dot wrong"></span>需要複習</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title"><span>顯示設定</span><span>TOOLS</span></h2>
+          <div class="controls">
+            <button class="control-button" id="languageToggle" type="button">只看英文題目</button>
+            <button class="control-button" id="jumpUnanswered" type="button">跳到下一題未作答</button>
+            <button class="control-button danger" id="resetButton" type="button">清除全部作答紀錄</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="content" id="quizContent">
+        <nav class="category-strip" id="categoryStrip" aria-label="考試領域"></nav>
+        <article class="question-card" id="questionCard"></article>
+        <div class="footer-nav">
+          <button id="previousButton" type="button">← 上一題</button>
+          <button id="nextButton" type="button">下一題 →</button>
+        </div>
+        <section class="completion" id="completionPanel" aria-live="polite"></section>
+      </section>
+    </div>
+    <div class="sr-only" id="liveRegion" aria-live="polite"></div>
+  </main>
+
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
